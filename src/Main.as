@@ -1,5 +1,6 @@
 
 void Main()
 {
-    print("Hello world");
+    auto tmpl = builder::TemplateExpansion();
+    tmpl.Test("src/builder/Test.as.tmpl");
 }

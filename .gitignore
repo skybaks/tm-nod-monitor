@@ -16,3 +16,6 @@ temp/
 # Build
 env/
 .vscode/
+
+# Generated
+src/autogen/
