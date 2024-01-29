@@ -2,8 +2,10 @@
 namespace builder
 {
     // var$varname
+
     // loop$id$arrayname$localname
     // endloop$id
+
     // if$id
     // elif$id
     // else$id
@@ -27,10 +29,10 @@ namespace builder
                 {"name", "this is my message"},
                 {"classname", "MyClass234"},
                 {"options", array<dictionary> = {
-                    {{"opt1", "asdf"}},
-                    {{"opt1", "wwww"}},
-                    {{"opt1", "peep"}},
-                    {{"opt1", "qooq"}}
+                    {{"opt1", "1asdf"}, {"opt2", array<dictionary> = {{{"1", "one"}}, {{"1", "two"}}}}},
+                    {{"opt1", "2wwww"}, {"opt2", array<dictionary> = {{{"1", "three"}}, {{"1", "four"}}}}},
+                    {{"opt1", "3peep"}, {"opt2", array<dictionary> = {{{"1", "five"}}, {{"1", "six"}}}}},
+                    {{"opt1", "4qooq"}, {"opt2", array<dictionary> = {{{"1", "sevn"}}, {{"1", "ate"}}}}}
                 }},
                 {"dict_test", dictionary = {{"t1", ":)"}, {"t2", "1234"}}}
             };
@@ -101,6 +103,12 @@ namespace builder
                             {
                                 array<dictionary>@ loopContextArray = cast<array<dictionary>>(GetValue(loopObjName, database));
 
+                                // loop through the loop
+                                // TODO: add a built-in with some loop meta information
+                                //  - currIndex
+                                //  - len
+                                //  - isFirst
+                                //  - isLast
                                 for (uint i = 0; i < loopContextArray.Length; ++i)
                                 {
                                     database[loopLclName] = loopContextArray[i];
