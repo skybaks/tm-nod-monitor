@@ -37,6 +37,7 @@ namespace builder
                 {"dict_test", dictionary = {{"t1", ":)"}, {"t2", "1234"}}}
             };
             string test = Process(bodySegments, tokens, database);
+            test = CleanupFormat(test);
             IO::File of(IO::FromDataFolder("Plugins/NodMonitor/src/autogen/out.txt"), IO::FileMode::Write);
             of.Write(test);
             of.Close();
@@ -174,6 +175,28 @@ namespace builder
                 }
             }
             return value;
+        }
+
+        // Go through the lines in the result and scrape out the garbage that
+        // gets left behind when the tokens get stripped out.
+        // This removes any lines that contain whitespace. Lines without
+        // whitespace will be retained.
+        private string CleanupFormat(const string&in body)
+        {
+            array<string>@ lines = body.Split("\n");
+            uint index = 0;
+            while (index < lines.Length)
+            {
+                if (lines[index].Trim() == "" && lines[index].Length > 1)
+                {
+                    lines.RemoveAt(index);
+                }
+                else
+                {
+                    index += 1;
+                }
+            }
+            return string::Join(lines, "\n");
         }
     }
 }

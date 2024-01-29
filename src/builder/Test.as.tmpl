@@ -11,12 +11,12 @@ namespace autogen
     class ##$var$classname$##
     {
         private array<string> myArr = {
-##$loop$0$options$option$##
-    "##$var$option.opt1$##",
-    ##$loop$1$option.opt2$other_thing$##
-        "##$var$other_thing.1$##",
-    ##$endloop$1$##
-##$endloop$0$##
+        ##$loop$0$options$option$##
+            "##$var$option.opt1$##",
+            ##$loop$1$option.opt2$other_thing$##
+            "##$var$other_thing.1$##",
+            ##$endloop$1$##
+        ##$endloop$0$##
         };
 
         ##$var$classname$##()
