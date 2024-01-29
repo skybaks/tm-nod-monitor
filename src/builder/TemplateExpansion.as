@@ -1,6 +1,14 @@
 
 namespace builder
 {
+    // var$varname
+    // loop$id$arrayname$localname
+    // endloop$id
+    // if$id
+    // elif$id
+    // else$id
+    // endif$id
+
     class TemplateExpansion
     {
         TemplateExpansion()
@@ -17,9 +25,16 @@ namespace builder
             Tokenize(contents, bodySegments, tokens);
             dictionary database = {
                 {"name", "this is my message"},
-                {"classname", "MyClass234"}
+                {"classname", "MyClass234"},
+                {"options", array<dictionary> = {
+                    {{"opt1", "asdf"}},
+                    {{"opt1", "wwww"}},
+                    {{"opt1", "peep"}},
+                    {{"opt1", "qooq"}}
+                }},
+                {"dict_test", dictionary = {{"t1", ":)"}, {"t2", "1234"}}}
             };
-            string test = ProcessVar(bodySegments, tokens, database);
+            string test = Process(bodySegments, tokens, database);
             IO::File of(IO::FromDataFolder("Plugins/NodMonitor/src/autogen/out.txt"), IO::FileMode::Write);
             of.Write(test);
             of.Close();
@@ -56,31 +71,101 @@ namespace builder
             }
         }
 
-        private string ProcessVar(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database)
+        private string Process(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database)
         {
             string processResult = "";
-            for (uint i = 0; i < bodySegments.Length; ++i)
+            array<string> workSegments = {};
+            array<string> workTokens = {};
+            uint tokenIndex = 0;
+            while (tokenIndex < tokens.Length)
             {
-                if (i > 0)
+                processResult += bodySegments[tokenIndex];
+
+                if (tokens[tokenIndex].StartsWith("loop"))
                 {
-                    string currToken = tokens[i-1];
-                    if (currToken.StartsWith("var."))
+                    array<string>@ loopSplit = tokens[tokenIndex].Split("$");
+                    string loopId = loopSplit[1];
+                    string loopObjName = loopSplit[2];
+                    string loopLclName = loopSplit[3];
+                    // Jump to next token
+                    tokenIndex += 1;
+                    // find the end of the loop, then enter a recursion
+                    while (tokenIndex < tokens.Length)
                     {
-                        string name = currToken.SubStr(4);
-                        if (database.Exists(name))
+                        workSegments.InsertLast(bodySegments[tokenIndex]);
+                        if (tokens[tokenIndex].StartsWith("endloop"))
                         {
-                            string value = string(database[name]);
-                            processResult += value;
+                            array<string>@ endloopSplit = tokens[tokenIndex].Split("$");
+                            string endloopId = endloopSplit[1];
+                            if (loopId == endloopId)
+                            {
+                                array<dictionary>@ loopContextArray = cast<array<dictionary>>(GetValue(loopObjName, database));
+
+                                for (uint i = 0; i < loopContextArray.Length; ++i)
+                                {
+                                    database[loopLclName] = loopContextArray[i];
+                                    processResult += Process(workSegments, workTokens, database);
+                                    database.Delete(loopLclName);
+                                }
+                                workSegments.RemoveRange(0, workSegments.Length);
+                                workTokens.RemoveRange(0, workTokens.Length);
+                                break;
+                            }
                         }
-                        else
-                        {
-                            throw("Missing var in database: " + name);
-                        }
+                        workTokens.InsertLast(tokens[tokenIndex]);
+                        tokenIndex += 1;
                     }
                 }
-                processResult += bodySegments[i];
+                else if (tokens[tokenIndex].StartsWith("if"))
+                {
+                    print("entered if");
+                }
+                else if (tokens[tokenIndex].StartsWith("var"))
+                {
+                    array<string>@ varSplit = tokens[tokenIndex].Split("$");
+                    string varName = varSplit[1];
+                    string varValue = string(GetValue(varName, database));
+                    processResult += varValue;
+                }
+                tokenIndex += 1;
             }
+            processResult += bodySegments[tokenIndex];
+
             return processResult;
+        }
+
+        private dictionaryValue@ GetValue(const string&in name, dictionary@ database)
+        {
+            array<string>@ nameSplit = name.Split(".");
+            dictionaryValue@ value = null;
+            for (uint i = 0; i < nameSplit.Length; ++i)
+            {
+                // First loop pull from database
+                if (i == 0)
+                {
+                    if (database.Exists(nameSplit[i]))
+                    {
+                        @value = database[nameSplit[i]];
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    dictionary@ dictValue = cast<dictionary>(value);
+                    if (dictValue !is null && dictValue.Exists(nameSplit[i]))
+                    {
+                        @value = dictValue[nameSplit[i]];
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            return value;
         }
     }
 }

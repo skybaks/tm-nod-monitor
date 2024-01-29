@@ -1,15 +1,28 @@
 
 namespace autogen
 {
-    class ##$var.classname$##
+    ##$loop$0$options$option$##
+    // --- begin ---
+    // ##$var$option.opt1$##
+    // ##$var$dict_test.t1$##
+    // --- end ---
+    ##$endloop$0$##
+
+    class ##$var$classname$##
     {
-        ##$var.classname$##()
+        private array<string> myArr = {
+##$loop$0$options$option$##
+            "##$var$option.opt1$##",
+##$endloop$0$##
+        };
+
+        ##$var$classname$##()
         {
         }
 
         string get_Name()
         {
-            return "##$var.name$##";
+            return "##$var$name$##";
         }
     }
 }
