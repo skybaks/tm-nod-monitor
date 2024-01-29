@@ -103,15 +103,20 @@ namespace builder
                             if (loopId == endloopId)
                             {
                                 array<dictionary>@ loopContextArray = cast<array<dictionary>>(GetValue(loopObjName, database));
-
+                                dictionary loopBuiltin = {
+                                    {"index", "0"},
+                                    {"length", tostring(loopContextArray.Length)},
+                                    {"isFirst", "true"},
+                                    {"isLast", "false"}
+                                };
                                 // loop through the loop
-                                // TODO: add a built-in with some loop meta information
-                                //  - currIndex
-                                //  - len
-                                //  - isFirst
-                                //  - isLast
                                 for (uint i = 0; i < loopContextArray.Length; ++i)
                                 {
+                                    loopBuiltin["index"] = tostring(i);
+                                    loopBuiltin["isFirst"] = i == 0 ? "true" : "false";
+                                    loopBuiltin["isLast"] = i+1 == loopContextArray.Length ? "true" : "false";
+                                    loopContextArray[i]["loop"] = loopBuiltin;
+
                                     database[loopLclName] = loopContextArray[i];
                                     processResult += Process(workSegments, workTokens, database);
                                     database.Delete(loopLclName);
