@@ -11,6 +11,8 @@ namespace builder
     // else`id
     // endif`id
 
+    // comment
+
     class TemplateExpansion
     {
         TemplateExpansion()
@@ -208,6 +210,11 @@ namespace builder
                     string varName = varSplit[1];
                     string varValue = string(GetValue(varName, database));
                     processResult += varValue;
+                }
+                else if (tokens[tokenIndex].StartsWith("comment"))
+                {
+                    // Comment is omitted from processed result, therefore do
+                    // nothing
                 }
                 else
                 {
