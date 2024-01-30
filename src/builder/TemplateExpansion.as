@@ -1,15 +1,15 @@
 
 namespace builder
 {
-    // var$varname
+    // var`varname
 
-    // loop$id$arrayname$localname
-    // endloop$id
+    // loop`id`arrayname`localname
+    // endloop`id
 
-    // if$id$var$varname$==$literal$literalstring$
-    // elif$id$literal$varname$==$var$literalstring$
-    // else$id
-    // endif$id
+    // if`id`var`varname`==`literal`literalstring
+    // elif`id`literal`varname`==`var`literalstring
+    // else`id
+    // endif`id
 
     class TemplateExpansion
     {
@@ -76,6 +76,7 @@ namespace builder
 
         private string Process(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database)
         {
+            const string TOKEN_INTERNAL = "`";
             string processResult = "";
             uint tokenIndex = 0;
             while (tokenIndex < tokens.Length)
@@ -84,7 +85,7 @@ namespace builder
 
                 if (tokens[tokenIndex].StartsWith("loop"))
                 {
-                    array<string>@ loopSplit = tokens[tokenIndex].Split("$");
+                    array<string>@ loopSplit = tokens[tokenIndex].Split(TOKEN_INTERNAL);
                     string loopId = loopSplit[1];
                     string loopObjName = loopSplit[2];
                     string loopLclName = loopSplit[3];
@@ -98,7 +99,7 @@ namespace builder
                         loopSegments.InsertLast(bodySegments[tokenIndex]);
                         if (tokens[tokenIndex].StartsWith("endloop"))
                         {
-                            array<string>@ endloopSplit = tokens[tokenIndex].Split("$");
+                            array<string>@ endloopSplit = tokens[tokenIndex].Split(TOKEN_INTERNAL);
                             string endloopId = endloopSplit[1];
                             if (loopId == endloopId)
                             {
@@ -131,7 +132,7 @@ namespace builder
                 }
                 else if (tokens[tokenIndex].StartsWith("if"))
                 {
-                    array<string>@ ifSplit = tokens[tokenIndex].Split("$");
+                    array<string>@ ifSplit = tokens[tokenIndex].Split(TOKEN_INTERNAL);
                     string ifId = ifSplit[1];
                     string ifObjA_Type = ifSplit[2];
                     string ifObjA_Name = ifSplit[3];
@@ -140,9 +141,10 @@ namespace builder
                     string ifObjB_Name = ifSplit[6];
                     // Jump to the next token
                     tokenIndex += 1;
-                    // get the first id, then we need to find all the rest of the ifs
-                    // then we go through each section of the if and take the one that passes
-                    // also consider that we may not take any part if there is not a successful condition
+                    // Take one branch at a time until a condition is
+                    // satisfied or the matching endif is encountered. If a
+                    // condition is taken, all subsequent branches will be
+                    // discarded until the endif.
                     bool oneBranchSatisfied = false;
                     bool ifIsTrue = TestCondition(ifObjA_Type, ifObjA_Name, ifObjB_Type, ifObjB_Name, ifCmp, database);
                     array<string> ifSegments = {};
@@ -155,7 +157,7 @@ namespace builder
                             || tokens[tokenIndex].StartsWith("else")
                             || tokens[tokenIndex].StartsWith("endif"))
                         {
-                            array<string>@ otherIfSplit = tokens[tokenIndex].Split("$");
+                            array<string>@ otherIfSplit = tokens[tokenIndex].Split(TOKEN_INTERNAL);
                             string otherIfId = otherIfSplit[1];
                             if (ifId == otherIfId)
                             {
@@ -202,7 +204,7 @@ namespace builder
                 }
                 else if (tokens[tokenIndex].StartsWith("var"))
                 {
-                    array<string>@ varSplit = tokens[tokenIndex].Split("$");
+                    array<string>@ varSplit = tokens[tokenIndex].Split(TOKEN_INTERNAL);
                     string varName = varSplit[1];
                     string varValue = string(GetValue(varName, database));
                     processResult += varValue;

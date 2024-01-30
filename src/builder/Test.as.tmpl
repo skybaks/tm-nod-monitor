@@ -1,42 +1,42 @@
 
 namespace autogen
 {
-    ##$if$0$var$name$==$literal$qooq$##
+    ##$if`0`var`name`==`literal`qooq$##
     // its qooq
-    ##$elif$0$literal$good_name$==$var$name$##
-    // its a really good name: ##$var$classname$##
-    ##$endif$0$##
+    ##$elif`0`literal`good_name`==`var`name$##
+    // its a really good name: ##$var`classname$##
+    ##$endif`0$##
 
-    ##$loop$0$options$option$##
+    ##$loop`0`options`option$##
     // --- begin ---
-    // ##$var$option.opt1$##
-    // index: ##$var$option.loop.index$##
-    // first: ##$var$option.loop.isFirst$##
-    // last : ##$var$option.loop.isLast$##
-    ##$endloop$0$##
+    // ##$var`option.opt1$##
+    // index: ##$var`option.loop.index$##
+    // first: ##$var`option.loop.isFirst$##
+    // last : ##$var`option.loop.isLast$##
+    ##$endloop`0$##
 
-    class ##$var$classname$##
+    class ##$var`classname$##
     {
         private array<string> myArr = {
-        ##$loop$0$options$option$##
-            ##$loop$1$option.opt2$other_thing$##
-            "##$var$other_thing.1$##",
-            ##$endloop$1$##
-            ##$if$0$var$option.loop.isLast$==$literal$true$##
-            "##$var$option.opt1$##"
-            ##$else$0$##
-            "##$var$option.opt1$##",
-            ##$endif$0$##
-        ##$endloop$0$##
+        ##$loop`0`options`option$##
+            ##$loop`1`option.opt2`other_thing$##
+            "##$var`other_thing.1$##",
+            ##$endloop`1$##
+            ##$if`0`var`option.loop.isLast`==`literal`true$##
+            "##$var`option.opt1$##"
+            ##$else`0$##
+            "##$var`option.opt1$##",
+            ##$endif`0$##
+        ##$endloop`0$##
         };
 
-        ##$var$classname$##()
+        ##$var`classname$##()
         {
         }
 
         string get_Name()
         {
-            return "##$var$name$##";
+            return "##$var`name$##";
         }
     }
 }
