@@ -1,24 +1,32 @@
 
 namespace autogen
 {
+    ##$if$0$var$name$==$literal$qooq$##
+    // its qooq
+    ##$elif$0$literal$good_name$==$var$name$##
+    // its a really good name: ##$var$classname$##
+    ##$endif$0$##
+
     ##$loop$0$options$option$##
     // --- begin ---
     // ##$var$option.opt1$##
     // index: ##$var$option.loop.index$##
     // first: ##$var$option.loop.isFirst$##
     // last : ##$var$option.loop.isLast$##
-    // lengt: ##$var$option.loop.length$##
-    // --- end ---
     ##$endloop$0$##
 
     class ##$var$classname$##
     {
         private array<string> myArr = {
         ##$loop$0$options$option$##
-            "##$var$option.opt1$##",
             ##$loop$1$option.opt2$other_thing$##
             "##$var$other_thing.1$##",
             ##$endloop$1$##
+            ##$if$0$var$option.loop.isLast$==$literal$true$##
+            "##$var$option.opt1$##"
+            ##$else$0$##
+            "##$var$option.opt1$##",
+            ##$endif$0$##
         ##$endloop$0$##
         };
 

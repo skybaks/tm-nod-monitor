@@ -6,8 +6,8 @@ namespace builder
     // loop$id$arrayname$localname
     // endloop$id
 
-    // if$id
-    // elif$id
+    // if$id$var$varname$==$literal$literalstring$
+    // elif$id$literal$varname$==$var$literalstring$
     // else$id
     // endif$id
 
@@ -26,8 +26,8 @@ namespace builder
             array<string> tokens = {};
             Tokenize(contents, bodySegments, tokens);
             dictionary database = {
-                {"name", "this is my message"},
-                {"classname", "MyClass234"},
+                {"name", "good_name"},
+                {"classname", "MyClass2345_6"},
                 {"options", array<dictionary> = {
                     {{"opt1", "1asdf"}, {"opt2", array<dictionary> = {{{"1", "one"}}, {{"1", "two"}}}}},
                     {{"opt1", "2wwww"}, {"opt2", array<dictionary> = {{{"1", "three"}}, {{"1", "four"}}}}},
@@ -77,8 +77,6 @@ namespace builder
         private string Process(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database)
         {
             string processResult = "";
-            array<string> workSegments = {};
-            array<string> workTokens = {};
             uint tokenIndex = 0;
             while (tokenIndex < tokens.Length)
             {
@@ -93,9 +91,11 @@ namespace builder
                     // Jump to next token
                     tokenIndex += 1;
                     // find the end of the loop, then enter a recursion
+                    array<string> loopSegments = {};
+                    array<string> loopTokens = {};
                     while (tokenIndex < tokens.Length)
                     {
-                        workSegments.InsertLast(bodySegments[tokenIndex]);
+                        loopSegments.InsertLast(bodySegments[tokenIndex]);
                         if (tokens[tokenIndex].StartsWith("endloop"))
                         {
                             array<string>@ endloopSplit = tokens[tokenIndex].Split("$");
@@ -118,21 +118,87 @@ namespace builder
                                     loopContextArray[i]["loop"] = loopBuiltin;
 
                                     database[loopLclName] = loopContextArray[i];
-                                    processResult += Process(workSegments, workTokens, database);
+                                    processResult += Process(loopSegments, loopTokens, database);
+                                    cast<dictionary>(database[loopLclName]).Delete("loop");
                                     database.Delete(loopLclName);
                                 }
-                                workSegments.RemoveRange(0, workSegments.Length);
-                                workTokens.RemoveRange(0, workTokens.Length);
                                 break;
                             }
                         }
-                        workTokens.InsertLast(tokens[tokenIndex]);
+                        loopTokens.InsertLast(tokens[tokenIndex]);
                         tokenIndex += 1;
                     }
                 }
                 else if (tokens[tokenIndex].StartsWith("if"))
                 {
-                    print("entered if");
+                    array<string>@ ifSplit = tokens[tokenIndex].Split("$");
+                    string ifId = ifSplit[1];
+                    string ifObjA_Type = ifSplit[2];
+                    string ifObjA_Name = ifSplit[3];
+                    string ifCmp = ifSplit[4];
+                    string ifObjB_Type = ifSplit[5];
+                    string ifObjB_Name = ifSplit[6];
+                    // Jump to the next token
+                    tokenIndex += 1;
+                    // get the first id, then we need to find all the rest of the ifs
+                    // then we go through each section of the if and take the one that passes
+                    // also consider that we may not take any part if there is not a successful condition
+                    bool oneBranchSatisfied = false;
+                    bool ifIsTrue = TestCondition(ifObjA_Type, ifObjA_Name, ifObjB_Type, ifObjB_Name, ifCmp, database);
+                    array<string> ifSegments = {};
+                    array<string> ifTokens = {};
+                    while (tokenIndex < tokens.Length)
+                    {
+                        bool skipToken = false;
+                        ifSegments.InsertLast(bodySegments[tokenIndex]);
+                        if (tokens[tokenIndex].StartsWith("elif")
+                            || tokens[tokenIndex].StartsWith("else")
+                            || tokens[tokenIndex].StartsWith("endif"))
+                        {
+                            array<string>@ otherIfSplit = tokens[tokenIndex].Split("$");
+                            string otherIfId = otherIfSplit[1];
+                            if (ifId == otherIfId)
+                            {
+                                // Previous if was true so process it now
+                                if (ifIsTrue)
+                                {
+                                    ifIsTrue = false;
+                                    oneBranchSatisfied = true;
+                                    processResult += Process(ifSegments, ifTokens, database);
+                                }
+                                // if is closed so break out now
+                                if (tokens[tokenIndex].StartsWith("endif"))
+                                {
+                                    break;
+                                }
+                                // Starting new branch, clear out buffers
+                                ifSegments.RemoveRange(0, ifSegments.Length);
+                                ifTokens.RemoveRange(0, ifTokens.Length);
+                                skipToken = true;
+                                if (tokens[tokenIndex].StartsWith("else") && !oneBranchSatisfied)
+                                {
+                                    // No conditions satisfied so run the else
+                                    ifIsTrue = true;
+                                }
+                                else if (tokens[tokenIndex].StartsWith("elif"))
+                                {
+                                    string elifObjA_Type = otherIfSplit[2];
+                                    string elifObjA_Name = otherIfSplit[3];
+                                    string elifCmp = otherIfSplit[4];
+                                    string elifObjB_Type = otherIfSplit[5];
+                                    string elifObjB_Name = otherIfSplit[6];
+                                    ifIsTrue = TestCondition(elifObjA_Type, elifObjA_Name, elifObjB_Type, elifObjB_Name, elifCmp, database);
+                                }
+                            }
+                        }
+                        // Need this so that we can jump past this token when
+                        // we are starting a new branch of the conditional
+                        if (!skipToken)
+                        {
+                            ifTokens.InsertLast(tokens[tokenIndex]);
+                        }
+                        tokenIndex += 1;
+                    }
                 }
                 else if (tokens[tokenIndex].StartsWith("var"))
                 {
@@ -140,6 +206,10 @@ namespace builder
                     string varName = varSplit[1];
                     string varValue = string(GetValue(varName, database));
                     processResult += varValue;
+                }
+                else
+                {
+                    throw("Non-op token: " + tokens[tokenIndex]);
                 }
                 tokenIndex += 1;
             }
@@ -202,6 +272,38 @@ namespace builder
                 }
             }
             return string::Join(lines, "\n");
+        }
+
+        private bool TestCondition(
+            const string&in aType, const string&in aName,
+            const string&in bType, const string&in bName,
+            const string&in cmp,
+            dictionary@ database)
+        {
+            string aValue = aName;
+            if (aType == "var")
+            {
+                aValue = string(GetValue(aName, database));
+            }
+            string bValue = bName;
+            if (bType == "var")
+            {
+                bValue = string(GetValue(bName, database));
+            }
+
+            if (cmp == "==")
+            {
+                return aValue == bValue;
+            }
+            else if (cmp == "!=")
+            {
+                return aValue != bValue;
+            }
+            else
+            {
+                throw("Unsupported cmp in condition: " + cmp);
+            }
+            return false;
         }
     }
 }
