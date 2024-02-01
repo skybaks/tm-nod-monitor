@@ -184,7 +184,7 @@ namespace builder
                                     // No conditions satisfied so run the else
                                     ifIsTrue = true;
                                 }
-                                else if (tokens[tokenIndex].StartsWith("elif"))
+                                else if (tokens[tokenIndex].StartsWith("elif") && !oneBranchSatisfied)
                                 {
                                     string elifObjA_Type = otherIfSplit[2];
                                     string elifObjA_Name = otherIfSplit[3];

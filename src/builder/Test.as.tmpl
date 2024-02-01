@@ -5,6 +5,8 @@ namespace autogen
     // its qooq
     ##$elif`0`literal`good_name`==`var`name$##
     // its a really good name: ##$var`classname$##
+    ##$elif`0`literal`good_name`!=`literal`bad_name$##
+    // duplicate condition!!
     ##$endif`0$##
 
     ##$loop`0`options`option$##
