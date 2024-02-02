@@ -1,54 +1,69 @@
 
 namespace builder
 {
-    // var`varname
+    // Template Syntax
+    // ---------------
+    // ##$ to begin a directive and $## to end
+    // - whitespace is not allowed within a directive
+    //
+    // -- Variables --
+    // ##$var`varname$##
+    // In the example above, varname is the name of a field in the input
+    // dictionary. The value at that key name will be inserted into the
+    // template
+    //
+    // -- Loops --
+    // ##$loop`id`arrayname`localname$##
+    // ##$endloop`id$##
+    // "id" is a string that matches the loop and endloop as belonging
+    // together. The "arrayname" is the key value of an array of dict inside
+    // your dictionary. For each iteration of the loop, the element of that
+    // array will be copied into a field named with what you put in
+    // "localname".
+    // Additionally, the following built-in variables will get added to your
+    // "localname":
+    //  - localname.loop.index
+    //  - localname.loop.length
+    //  - localname.loop.isFirst
+    //  - localname.loop.isLast
+    //
+    // -- Conditionals --
+    // ##$if`id`var`varname`==`literal`literalstring$##
+    // ##$elif`id`literal`varname`==`var`literalstring$##
+    // ##$else`id$##
+    // ##$endif`id$##
+    // "id" is a string that matches all the parts of the conditional
+    // together. It works just like an if/if else/else in other languages, if
+    // one condition is true the rest are skipped. Every comparison is
+    // performed as a string comparison.
+    // The `var` directive will indicate that the side of the condition should
+    // be evaluated as a variable lookup in the data dictionary. The `literal`
+    // indicates that the following text should be taken as a literal string.
+    // Supported comparisons are `==` and `!=`
+    //
+    // -- Comments --
+    // ##$comment type here$##
+    // Anything in the comment directive will be removed from the final
+    // template expansion. Use a comment to document the template but leave it
+    // out of the result.
+    //
 
-    // loop`id`arrayname`localname
-    // endloop`id
-
-    // if`id`var`varname`==`literal`literalstring
-    // elif`id`literal`varname`==`var`literalstring
-    // else`id
-    // endif`id
-
-    // comment
-
-    class TemplateExpansion
+    namespace TemplateExpansion
     {
-        TemplateExpansion()
+        string ExpandTemplate(const string&in template, dictionary@ data)
         {
-        }
-
-        void Test(const string&in filename)
-        {
-            IO::FileSource fs(filename);
-            string contents = fs.ReadToEnd();
-
             array<string> bodySegments = {};
             array<string> tokens = {};
-            Tokenize(contents, bodySegments, tokens);
-            dictionary database = {
-                {"name", "good_name"},
-                {"classname", "MyClass2345_6"},
-                {"options", array<dictionary> = {
-                    {{"opt1", "1asdf"}, {"opt2", array<dictionary> = {{{"1", "one"}}, {{"1", "two"}}}}},
-                    {{"opt1", "2wwww"}, {"opt2", array<dictionary> = {{{"1", "three"}}, {{"1", "four"}}}}},
-                    {{"opt1", "3peep"}, {"opt2", array<dictionary> = {{{"1", "five"}}, {{"1", "six"}}}}},
-                    {{"opt1", "4qooq"}, {"opt2", array<dictionary> = {{{"1", "sevn"}}, {{"1", "ate"}}}}}
-                }},
-                {"dict_test", dictionary = {{"t1", ":)"}, {"t2", "1234"}}}
-            };
-            string test = Process(bodySegments, tokens, database);
-            test = CleanupFormat(test);
-            IO::File of(IO::FromDataFolder("Plugins/NodMonitor/src/autogen/out.txt"), IO::FileMode::Write);
-            of.Write(test);
-            of.Close();
+            Tokenize(template, bodySegments, tokens);
+            string rawResult = Process(bodySegments, tokens, data);
+            string result = CleanupFormat(rawResult);
+            return result;
         }
 
         // Splits a input string into a series of segments and a series of
         // tokens. Input an empty array for both bodySegments and tokens and
         // it will be filled with the result.
-        private void Tokenize(const string&in body, array<string>@ bodySegments, array<string>@ tokens)
+        void Tokenize(const string&in body, array<string>@ bodySegments, array<string>@ tokens)
         {
             const string TOKEN_BEGIN = "##$";
             const string TOKEN_END = "$##";
@@ -76,7 +91,7 @@ namespace builder
             }
         }
 
-        private string Process(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database)
+        string Process(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database)
         {
             const string TOKEN_INTERNAL = "`";
             string processResult = "";
@@ -227,7 +242,7 @@ namespace builder
             return processResult;
         }
 
-        private dictionaryValue@ GetValue(const string&in name, dictionary@ database)
+        dictionaryValue@ GetValue(const string&in name, dictionary@ database)
         {
             array<string>@ nameSplit = name.Split(".");
             dictionaryValue@ value = null;
@@ -265,7 +280,7 @@ namespace builder
         // gets left behind when the tokens get stripped out.
         // This removes any lines that contain whitespace. Lines without
         // whitespace will be retained.
-        private string CleanupFormat(const string&in body)
+        string CleanupFormat(const string&in body)
         {
             array<string>@ lines = body.Split("\n");
             uint index = 0;
@@ -283,7 +298,7 @@ namespace builder
             return string::Join(lines, "\n");
         }
 
-        private bool TestCondition(
+        bool TestCondition(
             const string&in aType, const string&in aName,
             const string&in bType, const string&in bName,
             const string&in cmp,
