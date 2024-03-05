@@ -1,0 +1,13 @@
+
+namespace autogen
+{
+    ##$loop`0`types`type$##
+    funcdef ##$var`type.name$##@ ##$var`type.name$##_GetFunction();
+    class ##$var`type.name$##_WrapObj
+    {
+        ##$loop`1`type.members`type_member$##
+        ##$var`type_member.type$##@ Get##$var`type_member.name$##() { return null; }
+        ##$endloop`1$##
+    }
+    ##$endloop`0$##
+}
