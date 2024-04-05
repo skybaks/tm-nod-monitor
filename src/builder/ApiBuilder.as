@@ -97,7 +97,9 @@ namespace builder
                                 newMember["type"] = memberType;
                                 newMember["typeClean"] = memberTypeClean;
                                 // TODO: Add array support. Needs updates to template
-                                if (memberType.Contains("<") || memberType.Contains(">"))
+                                if ((memberType.Contains("<") || memberType.Contains(">"))
+                                    // TODO: Add enum support. Needs updates to template
+                                    || memberJson.HasKey("e"))
                                 {
                                     continue;
                                 }
