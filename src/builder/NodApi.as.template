@@ -4,9 +4,43 @@ namespace autogen
     ##$loop`0`types`type$##
     funcdef ##$var`type.name$##@ ##$var`type.name$##_GetFunction();
     class ##$var`type.name$##_WrapObj
+        : api::WatchTableMixin
+        , api::IWatchTableObject
+        ##$if`1`var`type.parent`!=`literal`$##
+        , ##$var`type.parent$##_WrapObj
+        ##$endif`1$##
     {
+        private ##$var`type.name$##_GetFunction@ m_getFunction##$var`type.name$##;
+
+        ##$var`type.name$##_WrapObj(##$var`type.name$##_GetFunction@ getFunction, const string&in name, const string&in qualifiedName)
+        {
+            @m_getFunction##$var`type.name$## = getFunction;
+            m_name = name;
+            m_qualifiedName = qualifiedName;
+        }
+
         ##$loop`1`type.members`type_member$##
-        ##$var`type_member.type$##@ Get##$var`type_member.name$##() { return null; }
+        // TODO: Isolate this method to only one per type in each class
+        private ##$var`type_member.type$##@ Get##$var`type_member.type$##()
+        {
+            auto@ self = cast<##$var`type_member.type$##@>(m_getFunction##$var`type.name$##());
+            if (self is null) { return null; }
+            return self.##$var`type_member.name$##;
+        }
+
+        private ##$var`type_member.type$##_WrapObj@ m_wrapObj##$var`type_member.name$## = null;
+        ##$var`type_member.type$##_WrapObj@ Get##$var`type_member.name$##()
+        {
+            if (m_wrapObj##$var`type_member.name$## is null)
+            {
+                @m_wrapObj##$var`type_member.name$## = ##$var`type_member.type$##_WrapObj(
+                    ##$var`type.name$##_GetFunction(this.Get##$var`type_member.type$##),
+                    "##$var`type_member.name$##",
+                    m_qualifiedName + ".##$var`type_member.name$##"
+                );
+            }
+            return m_wrapObj##$var`type_member.name$##;
+        }
         ##$endloop`1$##
     }
     ##$endloop`0$##

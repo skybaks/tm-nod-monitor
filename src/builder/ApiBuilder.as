@@ -68,6 +68,11 @@ namespace builder
                     dictionary@ newType = {};
                     newType["name"] = typeKeys[typeIndex];
                     Json::Value@ typeJson = nsJson[typeKeys[typeIndex]];
+                    newType["parent"] = "";
+                    if (typeJson.HasKey("p"))
+                    {
+                        newType["parent"] = string(typeJson["p"]);
+                    }
                     array<dictionary>@ members = {};
                     if (typeJson.HasKey("m"))
                     {
