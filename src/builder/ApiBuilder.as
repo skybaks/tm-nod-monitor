@@ -87,13 +87,15 @@ namespace builder
                                 dictionary newMember = {};
                                 string memberType = memberJson["t"];
                                 string memberName = memberJson["n"];
+                                string memberTypeClean = memberType;
                                 newMember["name"] = memberName;
-                                if (memberType.EndsWith("@"))
+                                if (memberTypeClean.EndsWith("@"))
                                 {
-                                    memberType = memberType.SubStr(0, memberType.Length-1);
+                                    memberTypeClean = memberTypeClean.SubStr(0, memberTypeClean.Length-1);
                                 }
-                                referencedTypes.InsertLast(memberType);
+                                referencedTypes.InsertLast(memberTypeClean);
                                 newMember["type"] = memberType;
+                                newMember["typeClean"] = memberTypeClean;
                                 // TODO: Add array support. Needs updates to template
                                 if (memberType.Contains("<") || memberType.Contains(">"))
                                 {

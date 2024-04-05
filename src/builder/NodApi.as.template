@@ -1,11 +1,11 @@
 
-namespace autogen
+namespace api
 {
     ##$loop`0`types`type$##
     funcdef ##$var`type.name$##@ ##$var`type.name$##_GetFunction();
     class ##$var`type.name$##_WrapObj
-        : api::WatchTableMixin
-        , api::IWatchTableObject
+        : WatchTableMixin
+        , IWatchTableObject
         ##$if`1`var`type.parent`!=`literal`$##
         , ##$var`type.parent$##_WrapObj
         ##$endif`1$##
@@ -30,7 +30,14 @@ namespace autogen
         }
         ##$endif`1$##
 
-        IWatchTableObject@ GetMember(const string&in name)
+        string get_Value() override
+        {
+            auto@ self = m_getFunction##$var`type.name$##();
+            if (self is null) { return "null"; }
+            return "##$var`type.name$##";
+        }
+
+        IWatchTableObject@ GetMember(const string&in name) override
         {
             ##$if`1`var`type.parent`!=`literal`$##
             auto@ parent = ##$var`type.parent$##_WrapObj::GetMember(name);
@@ -54,19 +61,19 @@ namespace autogen
         }
 
         ##$loop`1`type.members`type_member$##
-        private ##$var`type_member.type$##@ Get##$var`type_member.type$##_##$var`type_member.name$##()
+        private ##$var`type_member.type$## Get##$var`type_member.typeClean$##_##$var`type_member.name$##()
         {
             auto@ self = cast<##$var`type.name$##@>(m_getFunction##$var`type.name$##());
             if (self is null) { return null; }
             return self.##$var`type_member.name$##;
         }
-        private ##$var`type_member.type$##_WrapObj@ m_wrapObj##$var`type_member.name$## = null;
-        ##$var`type_member.type$##_WrapObj@ Get##$var`type_member.name$##()
+        private ##$var`type_member.typeClean$##_WrapObj@ m_wrapObj##$var`type_member.name$## = null;
+        ##$var`type_member.typeClean$##_WrapObj@ Get##$var`type_member.name$##_WrapObj()
         {
             if (m_wrapObj##$var`type_member.name$## is null)
             {
-                @m_wrapObj##$var`type_member.name$## = ##$var`type_member.type$##_WrapObj(
-                    ##$var`type.name$##_GetFunction(this.Get##$var`type_member.type$##_##$var`type_member.name$##),
+                @m_wrapObj##$var`type_member.name$## = ##$var`type_member.typeClean$##_WrapObj(
+                    ##$var`type.name$##_GetFunction(this.Get##$var`type_member.typeClean$##_##$var`type_member.name$##),
                     "##$var`type_member.name$##",
                     m_qualifiedName + ".##$var`type_member.name$##"
                 );
