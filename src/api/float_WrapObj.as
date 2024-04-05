@@ -6,7 +6,7 @@ namespace api
     {
         private float_GetFunction@ m_getFunctionFloat;
 
-        float_WrapObj(float_GetFunction@ getFunction, const string&in name, const string& qualifiedName)
+        float_WrapObj(float_GetFunction@ getFunction, const string&in name, const string&in qualifiedName)
         {
             @m_getFunctionFloat = getFunction;
             m_name = name;
