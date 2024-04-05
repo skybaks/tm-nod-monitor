@@ -14,27 +14,59 @@ namespace autogen
 
         ##$var`type.name$##_WrapObj(##$var`type.name$##_GetFunction@ getFunction, const string&in name, const string&in qualifiedName)
         {
-            @m_getFunction##$var`type.name$## = getFunction;
+            ##$if`1`var`type.parent`!=`literal`$##
+            super(##$var`type.name$##_GetFunction(this.GetParent_##$var`type.parent$##), name, qualifiedName);
+            ##$else`1$##
             m_name = name;
             m_qualifiedName = qualifiedName;
+            ##$endif`1$##
+            @m_getFunction##$var`type.name$## = getFunction;
+        }
+
+        ##$if`1`var`type.parent`!=`literal`$##
+        ##$var`type.parent$##@ GetParent_##$var`type.parent$##()
+        {
+            return m_getFunction##$var`type.name$##();
+        }
+        ##$endif`1$##
+
+        IWatchTableObject@ GetMember(const string&in name)
+        {
+            ##$if`1`var`type.parent`!=`literal`$##
+            auto@ parent = ##$var`type.parent$##_WrapObj::GetMember(name);
+            if (parent !is null)
+            {
+                return parent;
+            }
+            ##$endif`1$##
+
+            ##$loop`1`type.members`type_member$##
+            ##$if`1`var`type_member.loop.isFirst`==`literal`true`$##
+            if (name == "##$var`type_member.name$##")
+            ##$else`1$##
+            else if (name == "##$var`type_member.name$##")
+            ##$endif`1$##
+            {
+                return Get##$var`type_member.name$##_WrapObj();
+            }
+            ##$endloop`1$##
+            return null;
         }
 
         ##$loop`1`type.members`type_member$##
-        // TODO: Isolate this method to only one per type in each class
-        private ##$var`type_member.type$##@ Get##$var`type_member.type$##()
+        private ##$var`type_member.type$##@ Get##$var`type_member.type$##_##$var`type_member.name$##()
         {
-            auto@ self = cast<##$var`type_member.type$##@>(m_getFunction##$var`type.name$##());
+            auto@ self = cast<##$var`type.name$##@>(m_getFunction##$var`type.name$##());
             if (self is null) { return null; }
             return self.##$var`type_member.name$##;
         }
-
         private ##$var`type_member.type$##_WrapObj@ m_wrapObj##$var`type_member.name$## = null;
         ##$var`type_member.type$##_WrapObj@ Get##$var`type_member.name$##()
         {
             if (m_wrapObj##$var`type_member.name$## is null)
             {
                 @m_wrapObj##$var`type_member.name$## = ##$var`type_member.type$##_WrapObj(
-                    ##$var`type.name$##_GetFunction(this.Get##$var`type_member.type$##),
+                    ##$var`type.name$##_GetFunction(this.Get##$var`type_member.type$##_##$var`type_member.name$##),
                     "##$var`type_member.name$##",
                     m_qualifiedName + ".##$var`type_member.name$##"
                 );

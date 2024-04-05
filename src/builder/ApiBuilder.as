@@ -94,6 +94,11 @@ namespace builder
                                 }
                                 referencedTypes.InsertLast(memberType);
                                 newMember["type"] = memberType;
+                                // TODO: Add array support. Needs updates to template
+                                if (memberType.Contains("<") || memberType.Contains(">"))
+                                {
+                                    continue;
+                                }
                                 members.InsertLast(newMember);
                             }
                         }
