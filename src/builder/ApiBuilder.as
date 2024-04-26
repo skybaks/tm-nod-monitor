@@ -67,11 +67,25 @@ namespace builder
                 {
                     dictionary@ newType = {};
                     newType["name"] = typeKeys[typeIndex];
+
+                    array<string> typeIgnoreList = { "CFastString", "GmNat3", "GmQuat", "IntRange", "RealRange", "GmVec4", "Nat8", "Int16", "GxRGBAColor", "GmInt3", "GmInt2", "Nat16", "GmIso4", "NatRange", "GmVec2", "Enum16", "Int", "Int8", "Nat", "CMwId", "GmIso3", "Bool", "Enum8", "CFastStringInt", "Vec3Color", "GmNat2", "Enum32", "Real", "GmVec3" };
+                    if (typeIgnoreList.Find(string(newType["name"])) >= 0)
+                    {
+                        continue;
+                    }
+
                     Json::Value@ typeJson = nsJson[typeKeys[typeIndex]];
                     newType["parent"] = "";
                     if (typeJson.HasKey("p"))
                     {
                         newType["parent"] = string(typeJson["p"]);
+
+                        // Parents ignore list
+                        array<string> parentIgnoreList = { "_0x0A020000" };
+                        if (parentIgnoreList.Find(string(newType["parent"])) >= 0)
+                        {
+                            newType["parent"] = "";
+                        }
                     }
                     array<dictionary>@ members = {};
                     if (typeJson.HasKey("m"))
