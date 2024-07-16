@@ -54,31 +54,31 @@ namespace api
             else if (name == "##$var`type_member.name$##")
             ##$endif`1$##
             {
-                return Get##$var`type_member.name$##_WrapObj();
+                return Get##$var`type_member.name$##_##$var`type.name$##_WrapObj();
             }
             ##$endloop`1$##
             return null;
         }
 
         ##$loop`1`type.members`type_member$##
-        private ##$var`type_member.type$## Get##$var`type_member.typeClean$##_##$var`type_member.name$##()
+        private ##$var`type_member.type$## Get##$var`type_member.typeClean$##_##$var`type_member.name$##_##$var`type.name$##()
         {
             auto@ self = cast<##$var`type.name$##@>(m_getFunction##$var`type.name$##());
             if (self is null) { return null; }
             return self.##$var`type_member.name$##;
         }
-        private ##$var`type_member.typeClean$##_WrapObj@ m_wrapObj##$var`type_member.name$## = null;
-        ##$var`type_member.typeClean$##_WrapObj@ Get##$var`type_member.name$##_WrapObj()
+        private ##$var`type_member.typeClean$##_WrapObj@ m_wrapObj##$var`type_member.name$##_##$var`type.name$## = null;
+        ##$var`type_member.typeClean$##_WrapObj@ Get##$var`type_member.name$##_##$var`type.name$##_WrapObj()
         {
-            if (m_wrapObj##$var`type_member.name$## is null)
+            if (m_wrapObj##$var`type_member.name$##_##$var`type.name$## is null)
             {
-                @m_wrapObj##$var`type_member.name$## = ##$var`type_member.typeClean$##_WrapObj(
-                    ##$var`type_member.typeClean$##_GetFunction(this.Get##$var`type_member.typeClean$##_##$var`type_member.name$##),
+                @m_wrapObj##$var`type_member.name$##_##$var`type.name$## = ##$var`type_member.typeClean$##_WrapObj(
+                    ##$var`type_member.typeClean$##_GetFunction(this.Get##$var`type_member.typeClean$##_##$var`type_member.name$##_##$var`type.name$##),
                     "##$var`type_member.name$##",
                     m_qualifiedName + ".##$var`type_member.name$##"
                 );
             }
-            return m_wrapObj##$var`type_member.name$##;
+            return m_wrapObj##$var`type_member.name$##_##$var`type.name$##;
         }
         ##$endloop`1$##
     }
