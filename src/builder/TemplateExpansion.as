@@ -55,11 +55,14 @@ namespace builder
             array<string> bodySegments = {};
             array<string> tokens = {};
             Private::Tokenize(template, bodySegments, tokens);
+            Private::g_yieldTime = Time::Now;
             Private::Process(bodySegments, tokens, data, mb);
         }
 
         namespace Private
         {
+            uint64 g_yieldTime;
+
             // Splits a input string into a series of segments and a series of
             // tokens. Input an empty array for both bodySegments and tokens and
             // it will be filled with the result.
@@ -91,10 +94,16 @@ namespace builder
                 }
             }
 
+            // This function is recursive and slow. Until the day when it
+            // becomes fast, this should recursively yield at 10ms intervals to
+            // prevent egregious game hang-ups.
             void Process(array<string>@ bodySegments, array<string>@ tokens, dictionary@ database, MemoryBuffer@ mb)
             {
-                // should do some fancier logic around this. all at once is about 2 seconds
-                //yield();
+                if ((g_yieldTime + 10) < Time::Now)
+                {
+                    yield();
+                    g_yieldTime = Time::Now;
+                }
 
                 const string TOKEN_INTERNAL = "`";
                 uint tokenIndex = 0;

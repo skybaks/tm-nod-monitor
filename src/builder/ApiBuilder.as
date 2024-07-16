@@ -68,7 +68,7 @@ namespace builder
                     dictionary@ newType = {};
                     newType["name"] = typeKeys[typeIndex];
 
-                    array<string> typeIgnoreList = { "CFastString", "GmNat3", "GmQuat", "IntRange", "RealRange", "GmVec4", "Nat8", "Int16", "GxRGBAColor", "GmInt3", "GmInt2", "Nat16", "GmIso4", "NatRange", "GmVec2", "Enum16", "Int", "Int8", "Nat", "CMwId", "GmIso3", "Bool", "Enum8", "CFastStringInt", "Vec3Color", "GmNat2", "Enum32", "Real", "GmVec3" };
+                    array<string> typeIgnoreList = { "CFastString", "GmNat3", "GmQuat", "IntRange", "RealRange", "GmVec4", "Nat8", "Int16", "GxRGBAColor", "GmInt3", "GmInt2", "Nat16", "GmIso4", "NatRange", "GmVec2", "Enum16", "Int", "Int8", "Nat", "CMwId", "GmIso3", "Bool", "Enum8", "CFastStringInt", "Vec3Color", "GmNat2", "Enum32", "Real", "GmVec3", "UnnamedType", "UnknownType" };
                     if (typeIgnoreList.Find(string(newType["name"])) >= 0)
                     {
                         continue;
@@ -106,6 +106,22 @@ namespace builder
                                 if (memberTypeClean.EndsWith("@"))
                                 {
                                     memberTypeClean = memberTypeClean.SubStr(0, memberTypeClean.Length-1);
+                                }
+                                // Dont add member if we already have one with the same name
+                                bool foundExisting = false;
+                                for (uint searchIndex = 0; searchIndex < members.Length; ++searchIndex)
+                                {
+                                    if (string(members[searchIndex]["name"]) == memberName)
+                                    {
+                                        foundExisting = true;
+                                        break;
+                                    }
+                                }
+                                // Member ignore list
+                                if (typeIgnoreList.Find(memberTypeClean) >= 0
+                                    || foundExisting)
+                                {
+                                    continue;
                                 }
                                 referencedTypes.InsertLast(memberTypeClean);
                                 newMember["type"] = memberType;
