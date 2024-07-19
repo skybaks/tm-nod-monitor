@@ -5,11 +5,15 @@ namespace builder
     {
         private string m_apiFile;
         private string m_apiTemplate;
+        private array<string> m_memberIgnoreNames;
+        private array<string> m_typeIgnoreList;
 
         ApiBuilder(const string&in apiFile, const string&in apiTemplate)
         {
             m_apiFile = apiFile;
             m_apiTemplate = apiTemplate;
+            m_memberIgnoreNames = { "50__seconds" };
+            m_typeIgnoreList = { "CFastString", "GmNat3", "GmQuat", "IntRange", "RealRange", "GmVec4", "Nat8", "Int16", "GxRGBAColor", "GmInt3", "GmInt2", "Nat16", "GmIso4", "NatRange", "GmVec2", "Enum16", "Int", "Int8", "Nat", "CMwId", "GmIso3", "Bool", "Enum8", "CFastStringInt", "Vec3Color", "GmNat2", "Enum32", "Real", "GmVec3", "UnnamedType", "UnknownType", "NPlugCurve_SSimpleCurveInPlace7" };
         }
 
         uint64 get_ApiFileLength()
@@ -68,8 +72,7 @@ namespace builder
                     dictionary@ newType = {};
                     newType["name"] = typeKeys[typeIndex];
 
-                    array<string> typeIgnoreList = { "CFastString", "GmNat3", "GmQuat", "IntRange", "RealRange", "GmVec4", "Nat8", "Int16", "GxRGBAColor", "GmInt3", "GmInt2", "Nat16", "GmIso4", "NatRange", "GmVec2", "Enum16", "Int", "Int8", "Nat", "CMwId", "GmIso3", "Bool", "Enum8", "CFastStringInt", "Vec3Color", "GmNat2", "Enum32", "Real", "GmVec3", "UnnamedType", "UnknownType" };
-                    if (typeIgnoreList.Find(string(newType["name"])) >= 0)
+                    if (m_typeIgnoreList.Find(string(newType["name"])) >= 0)
                     {
                         continue;
                     }
@@ -118,14 +121,16 @@ namespace builder
                                     }
                                 }
                                 // Member ignore list
-                                if (typeIgnoreList.Find(memberTypeClean) >= 0
-                                    || foundExisting)
+                                if (m_typeIgnoreList.Find(memberTypeClean) >= 0
+                                    || foundExisting
+                                    || m_memberIgnoreNames.Find(memberName) >= 0)
                                 {
                                     continue;
                                 }
                                 referencedTypes.InsertLast(memberTypeClean);
                                 newMember["type"] = memberType;
                                 newMember["typeClean"] = memberTypeClean;
+                                newMember["defaultValue"] = GetTypeDefaultValue(memberType);
                                 // TODO: Add array support. Needs updates to template
                                 if ((memberType.Contains("<") || memberType.Contains(">"))
                                     // TODO: Add enum support. Needs updates to template
@@ -143,6 +148,48 @@ namespace builder
             }
             data["types"] = nextTypes;
             return data;
+        }
+
+        private string GetTypeDefaultValue(const string&in type)
+        {
+            /*
+            */
+            dictionary basicTypes = {
+                {"bool", "false"},
+                {"DataRef", "DataRef()"},
+                {"double", "0.0"},
+                {"float", "0.0f"},
+                {"int", "0"},
+                {"int2", "int2()"},
+                {"int3", "int3()"},
+                {"int8", "0"},
+                {"int16", "0"},
+                {"int64", "0"},
+                {"iso3", "iso3()"},
+                {"iso4", "iso4()"},
+                {"mat3", "mat3()"},
+                {"mat4", "mat4()"},
+                {"MwId", "MwId()"},
+                {"nat2", "nat2()"},
+                {"nat3", "nat3()"},
+                {"quat", "quat()"},
+                {"RGBAColor", "RGBAColor()"},
+                {"string", "\"\""},
+                {"uint", "0"},
+                {"uint8", "0"},
+                {"uint16", "0"},
+                {"uint64", "0"},
+                {"vec2", "vec2()"},
+                {"vec3", "vec3()"},
+                {"vec4", "vec4()"},
+                {"wstring", "\"\""}
+            };
+
+            if (basicTypes.Exists(type))
+            {
+                return string(basicTypes[type]);
+            }
+            return "null";
         }
     }
 }

@@ -15,7 +15,7 @@ namespace api
         ##$var`type.name$##_WrapObj(##$var`type.name$##_GetFunction@ getFunction, const string&in name, const string&in qualifiedName)
         {
             ##$if`1`var`type.parent`!=`literal`$##
-            super(##$var`type.name$##_GetFunction(this.GetParent_##$var`type.parent$##), name, qualifiedName);
+            super(##$var`type.parent$##_GetFunction(this.GetParent_##$var`type.parent$##), name, qualifiedName);
             ##$else`1$##
             m_name = name;
             m_qualifiedName = qualifiedName;
@@ -64,7 +64,7 @@ namespace api
         private ##$var`type_member.type$## Get##$var`type_member.typeClean$##_##$var`type_member.name$##_##$var`type.name$##()
         {
             auto@ self = cast<##$var`type.name$##@>(m_getFunction##$var`type.name$##());
-            if (self is null) { return null; }
+            if (self is null) { return ##$var`type_member.defaultValue$##; }
             return self.##$var`type_member.name$##;
         }
         private ##$var`type_member.typeClean$##_WrapObj@ m_wrapObj##$var`type_member.name$##_##$var`type.name$## = null;
